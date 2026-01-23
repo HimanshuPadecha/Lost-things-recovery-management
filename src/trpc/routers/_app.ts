@@ -1,16 +1,25 @@
-import { z } from 'zod';
-import { baseProcedure, createTRPCRouter } from '../init';
+import { z } from "zod";
+import { createTRPCRouter, protectedProcedure } from "../init";
+import { db } from "@/index";
+import { things } from "@/db/schema";
+import { and, ilike } from "drizzle-orm";
 export const appRouter = createTRPCRouter({
-  hello: baseProcedure
+  itemsGetMany: protectedProcedure
     .input(
       z.object({
-        text: z.string(),
+        name: z.string(),
+        location: z.string(),
       }),
     )
-    .query((opts) => {
-      return {
-        greeting: `hello ${opts.input.text}`,
-      };
+    .query(async ({ input }) => {
+      const { location, name } = input;
+
+      const result = await db
+        .select()
+        .from(things)
+        .where(and(ilike(things.name, name), ilike(things.location, location)));
+
+        return result;
     }),
 });
 // export type definition of API

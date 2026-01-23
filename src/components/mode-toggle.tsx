@@ -1,12 +1,19 @@
+"use client";
+
 import { Moon, Sun } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 
 export function ModeToggle() {
-  const { theme, setTheme } = useTheme();
-  
-  const isDark = theme === "dark" || 
-    (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  const { resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+
+  if (!mounted) return null; // prevents hydration mismatch
+
+  const isDark = resolvedTheme === "dark";
 
   const toggleTheme = () => {
     setTheme(isDark ? "light" : "dark");
