@@ -39,6 +39,16 @@ export const questions = pgTable("questions", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+export const accuracy = pgTable("accuracy", {
+  id: uuid("id").primaryKey().defaultRandom().notNull(),
+  userId: uuid("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  questionText: text("question_text").notNull(), 
+  answerText: text("answer_text").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
 
 export const meetings = pgTable("meetings", {
   id: uuid("id").primaryKey().defaultRandom().notNull(),

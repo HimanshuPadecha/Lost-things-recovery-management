@@ -10,7 +10,6 @@ import { ModeToggle } from "./mode-toggle";
 
 const navLinks = [
   { href: "/", label: "Home", icon: Home },
-  { href: "/report-lost", label: "Report Lost", icon: FileText },
   { href: "/report-found", label: "Report Found", icon: MapPin },
   { href: "/search", label: "Search", icon: Search },
   { href: "/about", label: "About", icon: Info },

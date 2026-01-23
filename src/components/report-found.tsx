@@ -2,26 +2,13 @@
 
 import { motion } from "framer-motion";
 import { useState } from "react";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
-import {
-  Upload,
-  MapPin,
-  Calendar,
-  Camera,
-  Heart,
-} from "lucide-react";
+import { trpc } from "@/trpc/client";
+import { UploadDropzone } from "@/utils/uploadthing";
+import { Camera, Heart, Loader2Icon } from "lucide-react";
+import { toast } from "sonner";
 
 const itemCategories = [
   "Wallet / Purse",
@@ -37,6 +24,19 @@ const itemCategories = [
 
 export default function ReportFoundForm() {
   const [step, setStep] = useState<number>(1);
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [location, setLocation] = useState("");
+
+  const addthing = trpc.addThing.useMutation({
+    onSuccess: () => {
+      toast.success("Thing added", { position: "top-center" });
+      setStep(2);
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
 
   return (
     <div className="max-w-4xl mx-auto px-4">
@@ -52,19 +52,18 @@ export default function ReportFoundForm() {
         </div>
 
         <h1 className="font-display text-3xl lg:text-4xl font-bold mb-4">
-          Thank You for{" "}
-          <span className="gradient-text-accent">Being Kind</span>
+          Thank You for <span className="gradient-text-accent">Being Kind</span>
         </h1>
 
         <p className="text-muted-foreground max-w-lg mx-auto">
-          You're helping someone get their valuable item back. Fill in the details
-          and we'll connect you with the owner.
+          You're helping someone get their valuable item back. Fill in the
+          details and we'll connect you with the owner.
         </p>
       </motion.div>
 
       {/* Progress */}
       <div className="flex justify-center gap-4 mb-12">
-        {[1, 2, 3].map((s) => (
+        {[1, 2].map((s) => (
           <div key={s} className="flex items-center">
             <div
               className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
@@ -75,7 +74,7 @@ export default function ReportFoundForm() {
             >
               {s}
             </div>
-            {s < 3 && (
+            {s < 2 && (
               <div
                 className={`w-16 h-1 mx-2 rounded-full ${
                   step > s ? "bg-success" : "bg-border"
@@ -91,41 +90,37 @@ export default function ReportFoundForm() {
         {/* STEP 1 */}
         {step === 1 && (
           <div className="space-y-6">
-            <h2 className="font-display text-xl font-semibold">
-              Item Details
-            </h2>
+            <h2 className="font-display text-xl font-semibold">Item Details</h2>
 
-            <div>
-              <Label>Item Category</Label>
-              <Select>
-                <SelectTrigger className="mt-2 h-12 rounded-xl">
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {itemCategories.map((cat) => (
-                    <SelectItem key={cat} value={cat}>
-                      {cat}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <Input
+              placeholder="Item name or brief description"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+            <Textarea
+              placeholder="Describe the item (avoid unique identifiers)"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
 
-            <Input placeholder="Item name or brief description" />
-            <Textarea placeholder="Describe the item (avoid unique identifiers)" />
-
-            <div className="border-2 border-dashed border-border rounded-xl p-8 text-center hover:border-success/50 transition-colors cursor-pointer">
-              <Camera className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
-              <p className="text-sm text-muted-foreground">
-                Drag & drop or{" "}
-                <span className="text-success font-medium">browse</span>
-              </p>
-            </div>
+            <Input
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="Enter the location.."
+            />
 
             <Button
               className="bg-success hover:bg-success/90 text-success-foreground w-full h-12 rounded-xl"
-              onClick={() => setStep(2)}
+              disabled={addthing.isPending}
+              onClick={() => {
+                if (!name || !location || !description) {
+                  toast.error("fill in all the details..");
+                  return;
+                }
+                addthing.mutate({ name, description, location });
+              }}
             >
+              {addthing.isPending && <Loader2Icon className="animate-spin" />}
               Continue
             </Button>
           </div>
@@ -133,67 +128,51 @@ export default function ReportFoundForm() {
 
         {/* STEP 2 */}
         {step === 2 && (
-          <div className="space-y-6">
-            <h2 className="font-display text-xl font-semibold">
-              Where & When
-            </h2>
+        <div className="space-y-6">
+          <h2 className="font-display text-xl font-semibold">Where & When (please input multiple photoes to help us process smoothly !!) </h2>
 
-            <Input placeholder="Location found" />
-            <Input type="date" />
+          <Input placeholder="Location found" />
 
-            <Select>
-              <SelectTrigger className="h-12 rounded-xl">
-                <SelectValue placeholder="Where is the item now?" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="with-me">With me</SelectItem>
-                <SelectItem value="police">Handed to police</SelectItem>
-                <SelectItem value="security">Left with security</SelectItem>
-                <SelectItem value="other">Other location</SelectItem>
-              </SelectContent>
-            </Select>
+          <UploadDropzone
+            endpoint="imageUploader"
+            input={{ thingId: addthing?.data?.id || "" }}
+            onClientUploadComplete={(res) => {
+              console.log("Files uploaded:", res);
+            }}
+            className="border-2 border-dashed border-border rounded-xl p-8 text-center hover:border-success/50 transition-colors cursor-pointer"
+            content={{
+              uploadIcon: () => (
+                <Camera className="w-10 h-10 text-muted-foreground" />
+              ),
+              label: () => (
+                <p className="text-sm text-muted-foreground">
+                  Drag & drop or{" "}
+                  <span className="text-success font-medium">browse</span>
+                </p>
+              ),
+              allowedContent: () => null,
+            }}
+          />
 
-            <div className="flex gap-4">
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={() => setStep(1)}
-              >
-                Back
-              </Button>
-              <Button
-                className="flex-1 bg-success hover:bg-success/90 text-success-foreground"
-                onClick={() => setStep(3)}
-              >
-                Continue
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 3 */}
-        {step === 3 && (
-          <div className="space-y-6">
-            <h2 className="font-display text-xl font-semibold">
-              Your Contact
-            </h2>
-
-            <Input placeholder="Email address" />
-            <Input placeholder="Phone number" />
-
-            <div className="glass-card p-4 rounded-xl bg-success/5">
-              <p className="text-sm text-muted-foreground">
-                Your contact details will only be shared after the owner verifies
-                ownership.
-              </p>
-            </div>
-
-            <Button className="btn-accent w-full h-12 rounded-xl">
-              <Upload className="w-4 h-4 mr-2" />
-              Submit Report
+          <div className="flex gap-4">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => setStep(1)}
+            >
+              Back
+            </Button>
+            <Button
+              className="flex-1 bg-success hover:bg-success/90 text-success-foreground"
+              onClick={() => setStep(3)}
+            >
+              Continue
             </Button>
           </div>
-        )}
+        </div>
+         )} 
+
+        {/* STEP 3 */}
       </div>
     </div>
   );
