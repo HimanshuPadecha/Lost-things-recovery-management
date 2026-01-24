@@ -4,6 +4,9 @@ import { ai } from "@/utils/gemini";
 import { serve } from "@upstash/workflow/nextjs";
 import { eq } from "drizzle-orm";
 import sharp from "sharp";
+import { UTApi } from "uploadthing/server";
+
+const utapi = new UTApi({});
 
 interface Input {
   thingId: string;
@@ -54,6 +57,9 @@ export const { POST } = serve(async (context) => {
     const PROMPT = `The "Sherlock Holmes" Verifier
 You need this first. This prompt takes the Founder's unstructured text/images and converts them into the "Secret Questions" you described in your flow.
 
+just give the json array 
+dont even include things like \`\`\`json
+
 Role: You are an expert forensic interrogator and item analyst.
 
 Task: Analyze the provided description and image analysis of a found item. Your goal is to generate 10 specific "Trap Questions" to verify a potential owner.
@@ -103,7 +109,12 @@ Publicly Visible Info: {{public_title}}
     const geminiResponse = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: [{ parts }],
+      config : {
+        responseMimeType : "application/json"
+      }
     });
+
+    console.log({ geminiResponse });
 
     if (!geminiResponse?.text) {
       throw new Error("Gemini returned empty response");

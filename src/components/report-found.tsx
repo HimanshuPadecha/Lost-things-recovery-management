@@ -27,6 +27,7 @@ export default function ReportFoundForm() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
+  const [explanation, setExplanation] = useState("");
 
   const addthing = trpc.addThing.useMutation({
     onSuccess: () => {
@@ -128,51 +129,41 @@ export default function ReportFoundForm() {
 
         {/* STEP 2 */}
         {step === 2 && (
-        <div className="space-y-6">
-          <h2 className="font-display text-xl font-semibold">Where & When (please input multiple photoes to help us process smoothly !!) </h2>
+          <div className="space-y-6">
+            <h2 className="font-display text-xl font-semibold">
+              Where & When (please input multiple photoes to help us process
+              smoothly !!){" "}
+            </h2>
 
-          <Input placeholder="Location found" />
+            <Textarea
+              placeholder="Description of the thing..."
+              value={explanation}
+              onChange={(e) => setExplanation(e.target.value)}
+            />
 
-          <UploadDropzone
-            endpoint="imageUploader"
-            input={{ thingId: addthing?.data?.id || "" }}
-            onClientUploadComplete={(res) => {
-              console.log("Files uploaded:", res);
-            }}
-            className="border-2 border-dashed border-border rounded-xl p-8 text-center hover:border-success/50 transition-colors cursor-pointer"
-            content={{
-              uploadIcon: () => (
-                <Camera className="w-10 h-10 text-muted-foreground" />
-              ),
-              label: () => (
-                <p className="text-sm text-muted-foreground">
-                  Drag & drop or{" "}
-                  <span className="text-success font-medium">browse</span>
-                </p>
-              ),
-              allowedContent: () => null,
-            }}
-          />
-
-          <div className="flex gap-4">
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={() => setStep(1)}
-            >
-              Back
-            </Button>
-            <Button
-              className="flex-1 bg-success hover:bg-success/90 text-success-foreground"
-              onClick={() => setStep(3)}
-            >
-              Continue
-            </Button>
+            <UploadDropzone
+              endpoint="imageUploader"
+              input={{ thingId: addthing?.data?.id || "", description }}
+              onClientUploadComplete={(res) => {
+                toast.success("Question generations started");
+                setExplanation("")
+              }}
+              className="border-2 border-dashed border-border rounded-xl p-8 text-center hover:border-success/50 transition-colors cursor-pointer"
+              content={{
+                uploadIcon: () => (
+                  <Camera className="w-10 h-10 text-muted-foreground" />
+                ),
+                label: () => (
+                  <p className="text-sm text-muted-foreground">
+                    Drag & drop or{" "}
+                    <span className="text-success font-medium">browse</span>
+                  </p>
+                ),
+                allowedContent: () => null,
+              }}
+            />
           </div>
-        </div>
-         )} 
-
-        {/* STEP 3 */}
+        )}
       </div>
     </div>
   );

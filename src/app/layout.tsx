@@ -16,12 +16,11 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-
 const robotoMono = Roboto_Mono({
-  subsets : ["latin"],
-  display : "swap",
-  variable : "--font-roboto-mono"
-})
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-roboto-mono",
+});
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -40,7 +39,8 @@ export default function RootLayout({
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
           <ThemeProvider attribute={"class"} defaultTheme="system" enableSystem>
-            <TRPCProvider>{children}
+            <TRPCProvider>
+              {children}
               <Toaster />
             </TRPCProvider>
           </ThemeProvider>

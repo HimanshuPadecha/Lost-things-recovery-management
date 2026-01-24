@@ -1,5 +1,6 @@
 import { thingsImages, users } from "@/db/schema";
 import { db } from "@/index";
+import { client } from "@/utils/upstash";
 import { auth } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 import { createUploadthing, type FileRouter } from "uploadthing/next";
@@ -18,6 +19,7 @@ export const ourFileRouter = {
     .input(
       z.object({
         thingId: z.string().uuid(),
+        description: z.string(),
       }),
     )
     .middleware(async ({ req, input }) => {
@@ -57,6 +59,12 @@ export const ourFileRouter = {
         .values({ thingId: metadata.thingId, url: file.ufsUrl });
 
       console.log("file url", file.ufsUrl);
+
+      client.trigger({
+        url: `${process.env.UPSTASH_WORKFLOW_URL}/api/workflow`,
+        retries: 0,
+        body: { description: metadata.description, thingId: metadata.thingId },
+      });
 
       return { uploadedBy: metadata.userId };
     }),
