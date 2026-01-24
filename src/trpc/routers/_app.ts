@@ -1,11 +1,11 @@
-import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "../init";
+import { questions, things, thingsImages } from "@/db/schema";
 import { db } from "@/index";
-import { meetings, things, thingsImages } from "@/db/schema";
-import { and, eq, ilike } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
+import { and, eq, ilike } from "drizzle-orm";
+import { z } from "zod";
+import { baseProcedure, createTRPCRouter, protectedProcedure } from "../init";
 export const appRouter = createTRPCRouter({
-  itemsGetMany: protectedProcedure
+  itemsGetMany: baseProcedure
     .input(
       z.object({
         name: z.string(),
@@ -25,7 +25,7 @@ export const appRouter = createTRPCRouter({
       return result;
     }),
 
-  addThing: protectedProcedure
+  addThing: baseProcedure
     .input(
       z.object({
         name: z.string().nonempty(),
@@ -51,7 +51,7 @@ export const appRouter = createTRPCRouter({
       return thing;
     }),
 
-  fetchThings: protectedProcedure.query(async () => {
+  fetchThings: baseProcedure.query(async () => {
     const fetched = await db
       .select()
       .from(things)
@@ -60,6 +60,20 @@ export const appRouter = createTRPCRouter({
 
     return fetched || [];
   }),
+
+  getQuestionsByThingId: baseProcedure
+    .input(z.object({ thingId: z.string().uuid() }))
+    .query(async ({ input }) => {
+      const { thingId } = input;
+      const result = await db
+        .select()
+        .from(questions)
+        .where(eq(questions.thingId, thingId));
+
+        console.log(result);
+        
+      return result;
+    }),
 });
 // export type definition of API
 export type AppRouter = typeof appRouter;

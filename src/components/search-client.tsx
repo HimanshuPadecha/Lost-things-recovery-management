@@ -24,6 +24,7 @@ import {
 import { trpc } from "@/trpc/client";
 import { ErrorBoundary } from "react-error-boundary";
 import Image from "next/image";
+import Link from "next/link";
 
 type ItemType = "lost" | "found";
 
@@ -187,44 +188,47 @@ export default function SearchClient() {
           {/* Grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {things.map((thing, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.05 * index }}
-                className="glass-card rounded-2xl overflow-hidden"
-              >
-                <div className="aspect-video bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center">
-                  <img
-                    src={thing.thing_images?.url}
-                    className="h-full w-full"
-                  />
-                  {!thing.thing_images?.url && (
-                    <Search className="w-8 h-8 text-destructive" />
-                  )}
-                </div>
-
-                <div className="p-5">
-                  <h3 className="font-display font-semibold text-lg mb-2">
-                    {thing.things.name}
-                  </h3>
-
-                  <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                    {thing.things.description}
-                  </p>
-
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="flex-1">
-                      <Eye className="w-4 h-4 mr-1" />
-                      View
-                    </Button>
-                    <Button size="sm" className="flex-1 btn-gradient">
-                      <MessageCircle className="w-4 h-4 mr-1" />
-                      Contact
-                    </Button>
+              <Link href={"/test/" + thing.things.id} key={index}>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.05 * index }}
+                  className="glass-card rounded-2xl overflow-hidden cursor-pointer"
+                >
+                  <div className="aspect-video bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center overflow-hidden">
+                    {thing.thing_images?.url ? (
+                      <img
+                        src={thing.thing_images.url}
+                        alt={thing.things.name}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <Search className="w-8 h-8 text-destructive" />
+                    )}
                   </div>
-                </div>
-              </motion.div>
+
+                  <div className="p-5">
+                    <h3 className="font-display font-semibold text-lg mb-2">
+                      {thing.things.name}
+                    </h3>
+
+                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                      {thing.things.description}
+                    </p>
+
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" className="flex-1">
+                        <Eye className="w-4 h-4 mr-1" />
+                        View
+                      </Button>
+                      <Button size="sm" className="flex-1 btn-gradient">
+                        <MessageCircle className="w-4 h-4 mr-1" />
+                        Contact
+                      </Button>
+                    </div>
+                  </div>
+                </motion.div>
+              </Link>
             ))}
           </div>
 
