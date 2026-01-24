@@ -4,6 +4,7 @@ import { TRPCError } from "@trpc/server";
 import { and, eq, ilike } from "drizzle-orm";
 import { z } from "zod";
 import { baseProcedure, createTRPCRouter, protectedProcedure } from "../init";
+import { client } from "@/utils/upstash";
 export const appRouter = createTRPCRouter({
   itemsGetMany: baseProcedure
     .input(
@@ -70,9 +71,25 @@ export const appRouter = createTRPCRouter({
         .from(questions)
         .where(eq(questions.thingId, thingId));
 
-        console.log(result);
-        
+      console.log(result);
+
       return result;
+    }),
+  callFlow: protectedProcedure
+    .input(z.object({ thingId: z.string().uuid(), verfication: z.any() }))
+    .mutation(async ({ input, ctx }) => {
+      const { thingId, verfication } = input;
+
+      // Return the trigger promise
+      return await client.trigger({
+        url: `${process.env.UPSTASH_WORKFLOW_URL}/api/verify-answers`,
+        retries: 0,
+        body: {
+          thingId,
+          userId: ctx.user.id, // Changed from clerkId to userId
+          verification_items: verfication,
+        },
+      });
     }),
 });
 // export type definition of API

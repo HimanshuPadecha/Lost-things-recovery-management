@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { trpc } from "@/trpc/client";
+import { useUser } from "@clerk/nextjs";
 import { Suspense, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
+import { toast } from "sonner";
 
 const QuestionsList = ({ thingId }: { thingId: string }) => {
   const [questions] = trpc.getQuestionsByThingId.useSuspenseQuery({ thingId });
@@ -18,10 +20,18 @@ const QuestionsList = ({ thingId }: { thingId: string }) => {
     }));
   };
 
+  const trigger = trpc.callFlow.useMutation();
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Submitted Answers:", answers);
-    alert(JSON.stringify(answers, null, 2));
+    const verification_items = questions.map((q) => ({
+      question: q.questionText,
+      correct_answer: q.answerText,
+      user_answer: answers[q.id] || "",
+    }));
+
+    trigger.mutate({ thingId, verfication: verification_items });
   };
 
   if (questions.length === 0) {
@@ -33,37 +43,47 @@ const QuestionsList = ({ thingId }: { thingId: string }) => {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-4">
-        {questions.map((q) => (
-          <div
-            key={q.id}
-            className="p-6 border rounded-xl shadow-sm bg-white hover:shadow-md transition-shadow"
-          >
-            <Label htmlFor={q.id} className="text-lg font-semibold block mb-2">
-              {q.questionText}
-            </Label>
-            <p className="text-sm text-gray-500 mb-4">{q.answerText}</p>
-            <Input
-              id={q.id}
-              placeholder="Your answer..."
-              value={answers[q.id] || ""}
-              onChange={(e) => handleInputChange(q.id, e.target.value)}
-              className="w-full"
-            />
-          </div>
-        ))}
+        {questions.map((q, index) => (
+  <div
+    key={q.id}
+    className="group p-6 border border-gray-200 rounded-xl bg-white hover:border-blue-300 hover:shadow-lg transition-all duration-200"
+  >
+    {/* Question number and text */}
+    <div className="flex gap-3 mb-4">
+      <span className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 text-blue-600 text-sm font-semibold group-hover:bg-blue-100 transition-colors">
+        {index + 1}
+      </span>
+      <Label 
+        htmlFor={q.id} 
+        className="text-lg font-medium text-gray-900 leading-relaxed cursor-pointer"
+      >
+        {q.questionText}
+      </Label>
+    </div>
+
+    {/* Input field */}
+    <Input
+      id={q.id}
+      placeholder="Type your answer here..."
+      value={answers[q.id] || ""}
+      onChange={(e) => handleInputChange(q.id, e.target.value)}
+      className="w-full px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
+    />
+
+    {/* Optional: Character count or validation indicator */}
+    {answers[q.id] && (
+      <p className="mt-2 text-sm text-gray-500">
+        {answers[q.id].length} characters
+      </p>
+    )}
+  </div>
+))}
       </div>
 
       <div className="flex flex-col gap-4">
         <Button type="submit" className="w-full md:w-auto">
           Submit Answers
         </Button>
-
-        <div className="mt-8 p-4 bg-gray-100 rounded-lg overflow-auto">
-          <h3 className="font-semibold mb-2 text-sm text-gray-700">
-            Current State:
-          </h3>
-          <pre className="text-xs">{JSON.stringify(answers, null, 2)}</pre>
-        </div>
       </div>
     </form>
   );

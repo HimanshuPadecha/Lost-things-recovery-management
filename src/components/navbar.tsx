@@ -82,7 +82,7 @@ export function Navbar() {
           <div className="flex items-center gap-2">
             <ModeToggle />
 
-            <Link href="/report-lost" className="hidden sm:block">
+            <Link href="/report-found" className="hidden sm:block">
               <Button className="btn-accent rounded-xl">
                 Report Item
               </Button>

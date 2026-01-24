@@ -34,7 +34,7 @@ const steps = [
   },
 ];
 
-export default function HowItWorksSection() {
+export default function listHowItWorksSection() {
   return (
     <section className="py-20 relative overflow-hidden">
       {/* Background decoration */}

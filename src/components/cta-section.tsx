@@ -76,17 +76,17 @@ export default function CTASection() {
               transition={{ delay: 0.5 }}
               className="flex flex-col sm:flex-row gap-4 justify-center"
             >
-              <Link href="/report-lost">
+              <Link href="/report-found">
                 <Button
                   size="lg"
                   className="bg-white text-primary hover:bg-white/90 rounded-xl px-8 h-12 text-base group"
                 >
-                  Report Lost Item
+                  Report Found Item
                   <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
 
-              <Link href="/report-found">
+              {/* <Link href="/report-found">
                 <Button
                   size="lg"
                   variant="outline"
@@ -94,7 +94,7 @@ export default function CTASection() {
                 >
                   Report Found Item
                 </Button>
-              </Link>
+              </Link> */}
             </motion.div>
           </div>
         </motion.div>
